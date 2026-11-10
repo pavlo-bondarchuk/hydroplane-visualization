@@ -8,9 +8,10 @@
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;background:#fafaf8;color:#24282d;font-family:Arial,Helvetica,sans-serif}
-.story{height:750vh;position:relative}
+.story{height:900vh;position:relative}
 .stage{height:100svh;position:sticky;top:0;overflow:hidden;background:#fafaf8}
 #aircraft{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#aircraft canvas{transform-origin:50% 50%;will-change:transform,opacity}
 .overline{position:absolute;z-index:2;top:clamp(22px,4vw,55px);left:clamp(22px,5vw,78px);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#575f66;pointer-events:none}
 .headline{position:absolute;z-index:2;bottom:clamp(32px,6vh,80px);left:clamp(22px,5vw,78px);pointer-events:none}
 h1{margin:0 0 14px;font:italic 400 clamp(40px,6vw,88px)/.97 Georgia,serif;letter-spacing:-.045em}
@@ -37,9 +38,12 @@ a{color:inherit}
 <script type="module">
 const status = document.querySelector('#status');
 const track = document.querySelector('.story');
+const aircraftEl = document.querySelector('#aircraft');
+const clamp = (value) => Math.min(1, Math.max(0, value));
+const ease = (value) => { const x = clamp(value); return x * x * (3 - 2 * x); };
 try {
   const { mount } = await import('https://cdn.jsdelivr.net/gh/dannystuart/sketch-to-3d@main/site/live/sketch-player.js');
-  const player = await mount(document.querySelector('#aircraft'), {
+  const player = await mount(aircraftEl, {
     model: 'https://polyfork.dev/cdn/scrap-built-aeroplane-65ac95.glb',
     play: 'click',
     end: 'hold',
@@ -50,32 +54,62 @@ try {
     az: 38,
     el: 24,
     fit: 1.25,
-    turn: 0
+    turn: 1.7
   });
   if (!player) throw new Error('Не удалось загрузить GLB или инициализировать WebGL');
   status.remove();
+  const canvas = aircraftEl.querySelector('canvas');
+  const initialSketch = 0.56;
+  const revealStart = 0.14;
+  const revealEnd = 0.80;
+  const flightStart = 0.82;
+  const flightEnd = 1;
+  let progress = initialSketch;
+  let previous = performance.now();
+
+  const scrollProgress = () => {
+    const bounds = track.getBoundingClientRect();
+    const distance = Math.max(1, bounds.height - window.innerHeight);
+    return clamp(-bounds.top / distance);
+  };
+
+  const render = (position) => {
+    const reveal = ease((position - revealStart) / (revealEnd - revealStart));
+    const target = initialSketch + (1 - initialSketch) * reveal;
+    return target;
+  };
+
+  const renderFlight = (position) => {
+    if (!canvas) return;
+    const flight = ease((position - flightStart) / (flightEnd - flightStart));
+    const x = window.innerWidth * 0.95 * flight;
+    const y = -window.innerHeight * 0.75 * flight;
+    const scale = 1 - 0.9 * flight;
+    const angle = -14 * flight;
+    canvas.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${angle}deg) scale(${scale})`;
+    canvas.style.opacity = String(1 - ease((flight - 0.68) / 0.32));
+  };
+
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     player.seek(1);
+    renderFlight(0);
   } else {
-    let current = 0;
-    let previousTime = performance.now();
-    const scrollProgress = () => {
-      const rect = track.getBoundingClientRect();
-      const length = Math.max(1, rect.height - window.innerHeight);
-      return Math.min(1, Math.max(0, -rect.top / length));
-    };
-    const frame = (time) => {
-      const dt = Math.min(0.1, (time - previousTime) / 1000);
-      previousTime = time;
-      const target = scrollProgress();
-      const factor = 1 - Math.exp(-dt / 0.42);
-      current += (target - current) * factor;
-      if (Math.abs(target - current) < 0.00008) current = target;
-      player.seek(current);
+    player.seek(initialSketch);
+    renderFlight(scrollProgress());
+
+    const frame = (timestamp) => {
+      const delta = Math.min(0.1, (timestamp - previous) / 1000);
+      previous = timestamp;
+      const position = scrollProgress();
+      const target = render(position);
+      const inertia = 1 - Math.exp(-delta / 0.48);
+      progress += (target - progress) * inertia;
+      if (Math.abs(target - progress) < 0.00005) progress = target;
+      player.seek(progress);
+      renderFlight(position);
       requestAnimationFrame(frame);
     };
-    current = scrollProgress();
-    player.seek(current);
+
     requestAnimationFrame(frame);
   }
 } catch (error) {
