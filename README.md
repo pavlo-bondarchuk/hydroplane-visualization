@@ -1,30 +1,35 @@
 # Hydroplane Visualization
 
-Scroll-driven 3D sketch-to-render presentation.
-
-The website uses the **original** [Danny Stuart Sketch-to-3D](https://github.com/dannystuart/sketch-to-3d) web player with `play: 'pin'`, not a simulated effect.
+An interactive scroll-driven 3D sketch-to-render page using the **original Sketch-to-3D player by Danny Stuart**.
 
 ## Live site
 
 https://pavlo-bondarchuk.github.io/hydroplane-visualization/
 
-## Model
+## How it works
 
-The current demonstration uses [Scrap-built aeroplane](https://polyfork.dev/asset/scrap-built-aeroplane-65ac95) by Polyfork. It is **not** a historically accurate M-1 hydroplane model.
+The public `index.html` loads the prebuilt official player from the upstream repository via jsDelivr:
 
-GitHub Actions downloads the free GLB from the Polyfork CDN during the build, and generates the site assets using the upstream `scripts/web.mjs`. Polyfork free GLB redistribution is permitted under CC BY 4.0 with attribution; attribution is included on the page.
+`https://cdn.jsdelivr.net/gh/dannystuart/sketch-to-3d@main/site/live/sketch-player.js`
 
-## Deployment
+It loads Polyfork's public GLB model:
 
-1. In repository **Settings → Pages**, set **Build and deployment → Source** to **GitHub Actions**.
-2. Open **Actions → Build and publish hydroplane visualization**.
-3. Run the workflow or push to `main`.
-4. Once both jobs succeed, open the live site.
+`https://polyfork.dev/cdn/scrap-built-aeroplane-65ac95.glb`
 
-The workflow needs network access to GitHub, npm and Polyfork. It fails explicitly if the downloaded file is not a GLB.
+The official engine runs in `play: 'pin'` mode with `end: 'hold'` and `drag: false`. This is the actual upstream engine, not a visual simulation.
 
-## Local development
+### Publishing to GitHub Pages
 
-The rendered output needs HTTP, not `file://`, because the original player loads the GLB via fetch.
+In **Settings → Pages → Build and deployment**, set:
 
-For a local build, follow the commands in `.github/workflows/deploy.yml`, then serve the `dist/` folder.
+- **Source:** Deploy from a branch
+- **Branch:** `main`
+- **Folder:** `/(root)`
+
+Save. Pages will publish the existing HTML without GitHub Actions or Node builds. This is required because the repository's Actions runner cannot start while the account has an unresolved GitHub billing restriction.
+
+### Important
+
+This version depends on two public CDNs at runtime. The page will not work offline, and no browser test has been completed in this development environment. A production-grade self-hosted build would require downloading the upstream bundle and the GLB into the repository.
+
+The currently selected [Polyfork Scrap-built aeroplane](https://polyfork.dev/asset/scrap-built-aeroplane-65ac95) is a demonstration aircraft, **not** a historically faithful M-1 hydroplane.
