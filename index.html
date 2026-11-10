@@ -17,7 +17,10 @@ html,body{margin:0;background:#fafaf8;color:#24282d;font-family:Arial,Helvetica,
 .scroll-cue:focus-visible{outline:2px solid #555b60;outline-offset:4px;border-radius:8px}
 @keyframes scroll-bounce{0%,100%{transform:translateY(-5px);opacity:.55}55%{transform:translateY(5px);opacity:1}}
 @media(prefers-reduced-motion:reduce){.scroll-cue svg{animation:none}}
-.overline{position:absolute;z-index:2;top:clamp(22px,4vw,55px);left:clamp(22px,5vw,78px);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#575f66;pointer-events:none}
+.overline{position:absolute;z-index:2;top:clamp(22px,4vw,55px);left:clamp(132px,10vw,160px);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#575f66;pointer-events:none}
+.flight-mark{position:absolute;z-index:7;left:clamp(22px,4vw,55px);top:clamp(16px,3vw,39px);width:68px;height:68px;display:grid;place-items:center;color:#273138;opacity:0;transform:scale(.68);transform-origin:50% 50%;pointer-events:none;will-change:opacity,transform}
+.flight-mark svg{width:68px;height:68px;overflow:visible}
+@media(max-width:600px){.flight-mark{width:52px;height:52px}.flight-mark svg{width:52px;height:52px}.overline{left:90px;right:14px;line-height:1.5;font-size:9px}}
 .headline{position:absolute;z-index:2;bottom:clamp(32px,6vh,80px);left:clamp(22px,5vw,78px);pointer-events:none}
 h1{margin:0 0 14px;font:italic 400 clamp(40px,6vw,88px)/.97 Georgia,serif;letter-spacing:-.045em}
 .headline p{margin:0;font-size:11px;letter-spacing:.17em;text-transform:uppercase;color:#646c72}
@@ -34,6 +37,18 @@ a{color:inherit}
 <div class="stage">
 <div id="aircraft" role="img" aria-label="Постепенное превращение рисунка самолёта в освещённую 3D-модель"></div>
 <div class="overline">Hydroplane visualization / aviation study</div>
+<div class="flight-mark" aria-label="Стилизованный логотип самолёта" role="img">
+<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<g transform="rotate(-35 40 40)" fill="currentColor">
+<path d="M36 7Q40 1 44 7L45 57Q43 65 40 67Q37 65 35 57Z"/>
+<path d="M5 29L75 29L75 37L5 37Z"/>
+<path d="M11 42L69 42L69 48L11 48Z"/>
+<path d="M24 59L56 59L56 64L24 64Z"/>
+<path d="M38 62L42 62L42 74L38 74Z"/>
+<circle cx="40" cy="8" r="4"/>
+</g>
+</svg>
+</div>
 <div class="headline"><h1>From sketch<br>to flight.</h1><p>Scroll to reveal the aircraft</p></div>
 <div class="status" id="status">Загрузка 3D-модели…</div>
 <button class="scroll-cue" type="button" aria-label="Прокрутить вниз, чтобы запустить анимацию">
@@ -49,6 +64,7 @@ const status = document.querySelector('#status');
 const track = document.querySelector('.story');
 const aircraftEl = document.querySelector('#aircraft');
 const scrollCue = document.querySelector('.scroll-cue');
+const flightMark = document.querySelector('.flight-mark');
 const clamp = (value) => Math.min(1, Math.max(0, value));
 const ease = (value) => { const x = clamp(value); return x * x * (3 - 2 * x); };
 try {
@@ -75,6 +91,7 @@ try {
   const initialPosition = stage.holder.position.clone();
   const initialScale = stage.holder.scale.clone();
   const initialRotation = stage.holder.rotation.clone();
+  const initialDistance = stage.camera.position.distanceTo(initialPosition);
   let current = initialSketch;
   let orbit = 0;
   let departure = 0;
@@ -95,29 +112,37 @@ try {
 
   const drawScene = (timeProgress, angle, flight) => {
     stage.pose(38 + angle, 24);
+
     const e = stage.camera.matrixWorld.elements;
     const right = [e[0], e[1], e[2]];
     const up = [e[4], e[5], e[6]];
-    const backward = [e[8], e[9], e[10]];
-    const leftDistance = 1.7 * flight;
-    const riseDistance = 0.38 * flight + 0.72 * flight * flight;
-    const awayDistance = 1.35 * flight;
+    const heading = ease(flight / 0.35);
+    const travel = ease((flight - 0.14) / 0.86);
+    const targetX = Math.max(48, Math.min(92, window.innerWidth * 0.056));
+    const targetY = Math.max(42, Math.min(77, window.innerHeight * 0.084));
+    const viewHeight = 2 * initialDistance * Math.tan(stage.camera.fov * Math.PI / 360);
+    const leftDistance = viewHeight * (window.innerWidth * 0.50 - targetX) / window.innerHeight;
+    const riseDistance = viewHeight * (window.innerHeight * 0.50 - targetY) / window.innerHeight;
+    const arcLift = 0.12 * Math.sin(Math.PI * travel);
 
     stage.holder.position.set(
-      initialPosition.x - right[0] * leftDistance + up[0] * riseDistance - backward[0] * awayDistance,
-      initialPosition.y - right[1] * leftDistance + up[1] * riseDistance - backward[1] * awayDistance,
-      initialPosition.z - right[2] * leftDistance + up[2] * riseDistance - backward[2] * awayDistance
+      initialPosition.x - right[0] * leftDistance * travel + up[0] * (riseDistance * travel + arcLift),
+      initialPosition.y - right[1] * leftDistance * travel + up[1] * (riseDistance * travel + arcLift),
+      initialPosition.z - right[2] * leftDistance * travel + up[2] * (riseDistance * travel + arcLift)
     );
 
-    stage.holder.scale.copy(initialScale).multiplyScalar(1 - 0.86 * flight);
     stage.holder.rotation.set(
-      initialRotation.x + 0.12 * flight,
-      initialRotation.y,
-      initialRotation.z + 0.14 * Math.sin(Math.PI * flight)
+      initialRotation.x - 0.32 * heading,
+      initialRotation.y - 1.3 * heading,
+      initialRotation.z + 0.13 * Math.sin(Math.PI * travel)
     );
-
+    stage.holder.scale.copy(initialScale).multiplyScalar(1 - 0.955 * travel);
     stage.holder.updateMatrixWorld(true);
     stage.frame(stage.duration * timeProgress, {turn:false, spin:angle});
+
+    const morph = ease((travel - 0.76) / 0.24);
+    flightMark.style.opacity = String(morph);
+    flightMark.style.transform = `scale(${0.68 + 0.32 * morph})`;
   };
 
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
