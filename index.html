@@ -25,7 +25,13 @@ html,body{margin:0;background:#fafaf8;color:#24282d;font-family:Arial,Helvetica,
 .headline h1{margin:0;font:italic 400 clamp(40px,6vw,88px)/.97 Georgia,serif;letter-spacing:-.045em}
 .headline .word{position:absolute;top:0;left:0;white-space:nowrap;transform-origin:0 0;will-change:transform}
 .headline p{position:absolute;top:0;left:0;margin:0;font-size:11px;letter-spacing:.17em;text-transform:translate3d(0,0,0);text-transform:uppercase;color:#646c72;will-change:transform,opacity}
-.status{position:absolute;z-index:5;top:50%;left:50%;transform:translate(-50%,-50%);width:min(85vw,540px);text-align:center;font-size:13px;line-height:1.65;color:#58636b;pointer-events:none}
+.status{position:absolute;z-index:5;top:50%;left:50%;transform:translate(-50%,-50%);width:min(85vw,540px);display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center;font-size:13px;line-height:1.65;color:#58636b;pointer-events:none}
+.loader-propeller{width:80px;height:80px;color:#58636b;animation:propeller-spin 1.15s linear infinite;transform-origin:center}
+.loader-propeller .blade{fill:currentColor;opacity:.75}
+.loader-propeller .hub{fill:#fafaf8;stroke:currentColor;stroke-width:2}
+@keyframes propeller-spin{to{transform:rotate(360deg)}}
+.status.error .loader-propeller{display:none}
+@media(prefers-reduced-motion:reduce){.loader-propeller{animation:none}}
 .status.error{color:#b72c2c}
 .outro{height:100svh;background:#fafaf8}
 .footer{position:relative;z-index:1;padding:50px 24px 80px;text-align:center;color:#69717a;font-size:12px;line-height:1.8}
@@ -38,7 +44,19 @@ a{color:inherit}
 <section class="story" data-sketch-track>
 <div class="stage">
 <div id="aircraft" role="img" aria-label="Постепенное превращение рисунка самолёта в освещённую 3D-модель"></div>
-<div class="status" id="status">Загрузка 3D-модели…</div>
+<div class="status" id="status" role="status" aria-live="polite">
+<svg class="loader-propeller" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<circle cx="40" cy="40" r="34" fill="none" stroke="currentColor" stroke-opacity=".14" stroke-width="1" stroke-dasharray="2 6"/>
+<g>
+<path class="blade" d="M40 36C30 26 28 8 35 6C44 4 46 24 42 36Z"/>
+<path class="blade" d="M44 40C54 30 72 28 74 35C76 44 56 46 44 42Z"/>
+<path class="blade" d="M40 44C50 54 52 72 45 74C36 76 34 56 38 44Z"/>
+<path class="blade" d="M36 40C26 50 8 52 6 45C4 36 24 34 36 38Z"/>
+<circle class="hub" cx="40" cy="40" r="5"/>
+</g>
+</svg>
+<span class="loading-message">Загрузка 3D-модели…</span>
+</div>
 <button class="scroll-cue" type="button" aria-label="Прокрутить вниз, чтобы запустить анимацию">
 <svg viewBox="0 0 26 38" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2v31M5 25l8 8 8-8"/></svg>
 <span>SCROLL TO EXPLORE</span>
@@ -245,7 +263,7 @@ try {
   }
 } catch (error) {
   status.classList.add('error');
-  status.textContent = 'Ошибка загрузки 3D: ' + (error?.message ?? 'неизвестная ошибка');
+  status.querySelector('.loading-message').textContent = 'Ошибка загрузки 3D: ' + (error?.message ?? 'неизвестная ошибка');
   console.error(error);
 }
 </script>
