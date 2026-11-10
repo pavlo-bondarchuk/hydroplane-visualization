@@ -17,10 +17,10 @@ html,body{margin:0;background:#fafaf8;color:#24282d;font-family:Arial,Helvetica,
 .scroll-cue:focus-visible{outline:2px solid #555b60;outline-offset:4px;border-radius:8px}
 @keyframes scroll-bounce{0%,100%{transform:translateY(-5px);opacity:.55}55%{transform:translateY(5px);opacity:1}}
 @media(prefers-reduced-motion:reduce){.scroll-cue svg{animation:none}}
-.overline{position:fixed;z-index:12;top:clamp(22px,4vw,55px);left:clamp(132px,10vw,160px);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#575f66;pointer-events:none}
+.overline{position:fixed;z-index:12;top:clamp(22px,4vw,55px);left:clamp(22px,4vw,55px);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#575f66;pointer-events:none;will-change:transform}
 .flight-mark{position:fixed;z-index:13;left:clamp(22px,4vw,55px);top:clamp(16px,3vw,39px);width:68px;height:68px;display:grid;place-items:center;color:#273138;opacity:0;transform:scale(.68);transform-origin:50% 50%;pointer-events:none;will-change:opacity,transform}
 .flight-mark svg{width:68px;height:68px;overflow:visible}
-@media(max-width:600px){.flight-mark{width:52px;height:52px}.flight-mark svg{width:52px;height:52px}.overline{left:90px;right:14px;line-height:1.5;font-size:9px}}
+@media(max-width:600px){.flight-mark{width:52px;height:52px}.flight-mark svg{width:52px;height:52px}.overline{right:14px;line-height:1.5;font-size:9px}}
 .headline{position:fixed;inset:0;z-index:9;pointer-events:none}
 .headline h1{margin:0;font:italic 400 clamp(40px,6vw,88px)/.97 Georgia,serif;letter-spacing:-.045em}
 .headline .word{position:absolute;top:0;left:0;white-space:nowrap;transform-origin:0 0;will-change:transform}
@@ -86,6 +86,7 @@ const track = document.querySelector('.story');
 const aircraftEl = document.querySelector('#aircraft');
 const scrollCue = document.querySelector('.scroll-cue');
 const flightMark = document.querySelector('.flight-mark');
+const overline = document.querySelector('.overline');
 const headlineFirst = document.querySelector('.word-first');
 const headlineSecond = document.querySelector('.word-second');
 const headlineCaption = document.querySelector('.headline p');
@@ -223,6 +224,9 @@ try {
     const morph = ease((travel - 0.76) / 0.24);
     flightMark.style.opacity = String(morph);
     flightMark.style.transform = `scale(${0.68 + 0.32 * morph})`;
+    const headerReveal = ease((travel - 0.55) / 0.32);
+    const markSpace = flightMark.getBoundingClientRect().width + (window.innerWidth <= 600 ? 14 : 24);
+    overline.style.transform = `translate3d(${markSpace * headerReveal}px,0,0)`;
   };
 
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
