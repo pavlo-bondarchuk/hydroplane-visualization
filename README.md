@@ -4,6 +4,8 @@ An interactive scroll-driven 3D sketch-to-render page using the **original Sketc
 
 ## Live site
 
+Published directly from the `main` branch via GitHub Pages.
+
 https://pavlo-bondarchuk.github.io/hydroplane-visualization/
 
 ## How it works
