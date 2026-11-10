@@ -17,16 +17,18 @@ html,body{margin:0;background:#fafaf8;color:#24282d;font-family:Arial,Helvetica,
 .scroll-cue:focus-visible{outline:2px solid #555b60;outline-offset:4px;border-radius:8px}
 @keyframes scroll-bounce{0%,100%{transform:translateY(-5px);opacity:.55}55%{transform:translateY(5px);opacity:1}}
 @media(prefers-reduced-motion:reduce){.scroll-cue svg{animation:none}}
-.overline{position:absolute;z-index:2;top:clamp(22px,4vw,55px);left:clamp(132px,10vw,160px);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#575f66;pointer-events:none}
-.flight-mark{position:absolute;z-index:7;left:clamp(22px,4vw,55px);top:clamp(16px,3vw,39px);width:68px;height:68px;display:grid;place-items:center;color:#273138;opacity:0;transform:scale(.68);transform-origin:50% 50%;pointer-events:none;will-change:opacity,transform}
+.overline{position:fixed;z-index:12;top:clamp(22px,4vw,55px);left:clamp(132px,10vw,160px);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#575f66;pointer-events:none}
+.flight-mark{position:fixed;z-index:13;left:clamp(22px,4vw,55px);top:clamp(16px,3vw,39px);width:68px;height:68px;display:grid;place-items:center;color:#273138;opacity:0;transform:scale(.68);transform-origin:50% 50%;pointer-events:none;will-change:opacity,transform}
 .flight-mark svg{width:68px;height:68px;overflow:visible}
 @media(max-width:600px){.flight-mark{width:52px;height:52px}.flight-mark svg{width:52px;height:52px}.overline{left:90px;right:14px;line-height:1.5;font-size:9px}}
-.headline{position:absolute;z-index:2;bottom:clamp(32px,6vh,80px);left:clamp(22px,5vw,78px);pointer-events:none}
-h1{margin:0 0 14px;font:italic 400 clamp(40px,6vw,88px)/.97 Georgia,serif;letter-spacing:-.045em}
-.headline p{margin:0;font-size:11px;letter-spacing:.17em;text-transform:uppercase;color:#646c72}
+.headline{position:fixed;inset:0;z-index:9;pointer-events:none}
+.headline h1{margin:0;font:italic 400 clamp(40px,6vw,88px)/.97 Georgia,serif;letter-spacing:-.045em}
+.headline .word{position:absolute;top:0;left:0;white-space:nowrap;transform-origin:0 0;will-change:transform}
+.headline p{position:absolute;top:0;left:0;margin:0;font-size:11px;letter-spacing:.17em;text-transform:translate3d(0,0,0);text-transform:uppercase;color:#646c72;will-change:transform,opacity}
 .status{position:absolute;z-index:5;top:50%;left:50%;transform:translate(-50%,-50%);width:min(85vw,540px);text-align:center;font-size:13px;line-height:1.65;color:#58636b;pointer-events:none}
 .status.error{color:#b72c2c}
-.footer{padding:50px 24px 80px;text-align:center;color:#69717a;font-size:12px;line-height:1.8}
+.outro{height:100svh;background:#fafaf8}
+.footer{position:relative;z-index:1;padding:50px 24px 80px;text-align:center;color:#69717a;font-size:12px;line-height:1.8}
 a{color:inherit}
 @media(max-width:600px){h1{font-size:clamp(38px,10vw,57px)}}
 </style>
@@ -36,7 +38,16 @@ a{color:inherit}
 <section class="story" data-sketch-track>
 <div class="stage">
 <div id="aircraft" role="img" aria-label="Постепенное превращение рисунка самолёта в освещённую 3D-модель"></div>
-<div class="overline">Hydroplane visualization / aviation study</div>
+<div class="status" id="status">Загрузка 3D-модели…</div>
+<button class="scroll-cue" type="button" aria-label="Прокрутить вниз, чтобы запустить анимацию">
+<svg viewBox="0 0 26 38" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2v31M5 25l8 8 8-8"/></svg>
+<span>SCROLL TO EXPLORE</span>
+</button>
+</div>
+</section>
+<section class="outro" aria-label="Finale"></section>
+</main>
+<header class="site-header"><div class="overline">Hydroplane visualization / aviation study</div>
 <div class="flight-mark" aria-label="Стилизованный логотип самолёта" role="img">
 <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 <g transform="rotate(-35 40 40)" fill="currentColor">
@@ -49,15 +60,7 @@ a{color:inherit}
 </g>
 </svg>
 </div>
-<div class="headline"><h1>From sketch<br>to flight.</h1><p>Scroll to reveal the aircraft</p></div>
-<div class="status" id="status">Загрузка 3D-модели…</div>
-<button class="scroll-cue" type="button" aria-label="Прокрутить вниз, чтобы запустить анимацию">
-<svg viewBox="0 0 26 38" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2v31M5 25l8 8 8-8"/></svg>
-<span>SCROLL TO EXPLORE</span>
-</button>
-</div>
-</section>
-</main>
+<div class="headline"><h1><span class="word word-first">From sketch</span><span class="word word-second">to flight.</span></h1><p>Scroll to reveal the aircraft</p></div></header>
 <footer class="footer">Demonstration aircraft: <a href="https://polyfork.dev/asset/scrap-built-aeroplane-65ac95">Scrap-built aeroplane by Polyfork</a> · Animation: <a href="https://github.com/dannystuart/sketch-to-3d">original Sketch-to-3D by Danny Stuart</a>.<br>This demonstration aircraft is not a historically accurate M-1 hydroplane.</footer>
 <script type="module">
 const status = document.querySelector('#status');
@@ -65,6 +68,9 @@ const track = document.querySelector('.story');
 const aircraftEl = document.querySelector('#aircraft');
 const scrollCue = document.querySelector('.scroll-cue');
 const flightMark = document.querySelector('.flight-mark');
+const headlineFirst = document.querySelector('.word-first');
+const headlineSecond = document.querySelector('.word-second');
+const headlineCaption = document.querySelector('.headline p');
 const clamp = (value) => Math.min(1, Math.max(0, value));
 const ease = (value) => { const x = clamp(value); return x * x * (3 - 2 * x); };
 try {
@@ -96,6 +102,59 @@ try {
   let orbit = 0;
   let departure = 0;
   let previous = performance.now();
+  const propellerCandidates = [];
+  stage.holder.traverse((node) => {
+    if (/propeller|prop[-_ ]?blade|airscrew|rotor|helice/i.test(node.name || '')) {
+      propellerCandidates.push(node);
+    }
+  });
+  const propeller = propellerCandidates.find((node) => !propellerCandidates.some((parent) => parent !== node && parent.children.includes(node))) || null;
+  let propAxis = 'z';
+  let propStart = 0;
+  if (propeller) {
+    const mesh = propeller.isMesh ? propeller : propeller.children.find((child) => child.isMesh);
+    if (mesh?.geometry) {
+      mesh.geometry.computeBoundingBox();
+      const box = mesh.geometry.boundingBox;
+      if (box) {
+        const dimensions = {
+          x: box.max.x - box.min.x,
+          y: box.max.y - box.min.y,
+          z: box.max.z - box.min.z
+        };
+        propAxis = Object.keys(dimensions).sort((a, b) => dimensions[a] - dimensions[b])[0];
+      }
+    }
+    propStart = propeller.rotation[propAxis];
+  } else {
+    console.warn('No named propeller node found in the aircraft model');
+  }
+
+  const drawHeadline = (position) => {
+    const t = ease((position - 0.84) / 0.16);
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const fontSize = parseFloat(getComputedStyle(headlineFirst).fontSize);
+    const lineHeight = fontSize * 0.97;
+    const left = Math.min(78, Math.max(22, vw * 0.05));
+    const bottom = Math.min(80, Math.max(32, vh * 0.06));
+    const startY = vh - bottom - lineHeight * 2 - 25;
+    const firstWidth = headlineFirst.offsetWidth;
+    const secondWidth = headlineSecond.offsetWidth;
+    const gap = Math.max(12, vw * 0.014);
+    const finalScale = Math.min(vw * 0.9 / (firstWidth + secondWidth + gap), vh * 0.28 / lineHeight);
+    const finalX = (vw - (firstWidth + secondWidth + gap) * finalScale) / 2;
+    const finalY = (vh - lineHeight * finalScale) / 2;
+    const scale = 1 + (finalScale - 1) * t;
+    const x1 = left + (finalX - left) * t;
+    const y1 = startY + (finalY - startY) * t;
+    const x2 = left + (finalX + (firstWidth + gap) * finalScale - left) * t;
+    const y2 = startY + lineHeight + (finalY - startY - lineHeight) * t;
+    headlineFirst.style.transform = `translate3d(${x1}px,${y1}px,0) scale(${scale})`;
+    headlineSecond.style.transform = `translate3d(${x2}px,${y2}px,0) scale(${scale})`;
+    headlineCaption.style.transform = `translate3d(${left}px,${startY + lineHeight * 2 + 15}px,0)`;
+    headlineCaption.style.opacity = String(1 - ease(position / 0.85));
+  };
 
   const scrollProgress = () => {
     const rect = track.getBoundingClientRect();
@@ -137,6 +196,9 @@ try {
       initialRotation.z + 0.13 * Math.sin(Math.PI * travel)
     );
     stage.holder.scale.copy(initialScale).multiplyScalar(1 - 0.955 * travel);
+    if (propeller) {
+      propeller.rotation[propAxis] = propStart + 125 * flight;
+    }
     stage.holder.updateMatrixWorld(true);
     stage.frame(stage.duration * timeProgress, {turn:false, spin:angle});
 
@@ -148,9 +210,11 @@ try {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     scrollCue.style.display = 'none';
     drawScene(1, 0, 0);
+    drawHeadline(1);
   } else {
     player.seek(initialSketch);
     drawScene(initialSketch, 0, 0);
+    drawHeadline(scrollProgress());
 
     const frame = (timestamp) => {
       const dt = Math.min(0.1, (timestamp - previous) / 1000);
@@ -171,6 +235,7 @@ try {
       if (Math.abs(targetFlight - departure) < 0.00005) departure = targetFlight;
 
       drawScene(current, orbit, departure);
+      drawHeadline(position);
       scrollCue.style.opacity = String(1 - ease(position / 0.13));
       scrollCue.style.pointerEvents = position >= 0.13 ? 'none' : 'auto';
       requestAnimationFrame(frame);
